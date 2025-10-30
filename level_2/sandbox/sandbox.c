@@ -28,7 +28,9 @@ int sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 		f();
 		exit(0);
 	}
-	struct sigaction sa = {0};
+    struct sigaction sa;
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
 	sa.sa_handler = alarm_handler;
 	sigaction(SIGALRM, &sa, NULL);
 	alarm(timeout);
