@@ -1,0 +1,58 @@
+Assignment name  : argo
+Expected files   : argo.c
+Allowed functions: getc, ungetc, printf, malloc, calloc, realloc, free, isdigit,
+fscanf, write, putchar
+--------------------------------------------------------------------------------
+
+Write a function argo that will parse a json file in the structure declared in
+argo.h.
+Your function will have the following prototype:
+
+int		argo(json *dst, FILE *stream);
+
+dst		is the pointer to the AST that you will create.
+stream	is the file to parse (man FILE)
+
+Your function will return 1 in case of success or -1 in case of failure.
+If an unexpected token is found you will print the following message in stdout:
+"Unexpected token '%c'\n" or "Unexpected end of input\n" if the token is EOF.
+
+You will only have to handle numbers, strings and objects.
+Numbers will only be basic ints like in scanf("%d").
+You must handle escaping in strings only for backslashes and double quotes (no
+\n \u or anything else).
+You don't have to handle spaces between tokens in the input (so they should be considered as
+invalid tokens). You can have spaces inside double quotes, i.e. inside strings.
+
+If you have any doubt on how to parse json you can read the rfc8259 present in
+this directory, but you don't need to read it all, the json format is made to be
+simple and intuitive.
+
+Your function will be tested with a main very similar to the one present in
+this directory.
+With this main the output should be exactly the same as the input (except for
+errors). If the key is missing and only the value is present, the function must return -1.
+There are already several functions in the file argo.c that might help you.
+
+For example this should work:
+$> /bin/echo -n '1' | ./argo /dev/stdin | cat -e
+1$
+$> /bin/echo -n '"hello"' | ./argo /dev/stdin | cat -e
+"hello"$
+$> /bin/echo -n '"hello world"' | ./argo /dev/stdin | cat -e
+"hello world"$
+$> /bin/echo -n '"escape the \" char"' | ./argo /dev/stdin | cat -e
+"escape the \" char"$
+$> /bin/echo -n '{"tomatoes":42,"potatoes":234}' | ./argo /dev/stdin | cat -e
+{"tomatoes":42,"potatoes":234}$
+$> /bin/echo -n '{"recursion":{"recursion":{"recursion":{"recursion":"recursion"}}}}' | ./argo /dev/stdin | cat -e
+{"recursion":{"recursion":{"recursion":{"recursion":"recursion"}}}}$
+$> /bin/echo -n '"unfinished string' | ./argo /dev/stdin | cat -e
+Unexpected end of input$
+$> /bin/echo -n '"unfinished string 2\"' | ./argo /dev/stdin | cat -e
+Unexpected end of input$
+$> /bin/echo -n '{"no value?":}' | ./argo /dev/stdin | cat -e
+Unexpected token '}'$
+$> /bin/echo -n '{ "spaces" : "between_tokens" }' | ./argo /dev/stdin | cat -e
+Unexpected token ' '$
+$>
