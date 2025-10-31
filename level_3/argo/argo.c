@@ -2,10 +2,10 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <string.h>
-#include <stdlib.h>
+#include <stdlib.h> // change this to <stdlib.h>
 
-#define FAILURE -1
 #define SUCCESS 1
+#define FAILURE -1
 
 typedef struct	json {
 	enum {
@@ -117,14 +117,15 @@ void	serialize(json j)
 	}
 }
 
-char *ft_strdup(char *s)
+char *ft_strdup(char *buffer)
 {
 	int len;
-	for (len=0; s[len]; len++);
-	char *new = (char *)malloc(sizeof(char) * len + 1);
-	for (int i=0; s[i]; i++) new[i] = s[i];
-	new[len] = 0;
-	return (new);
+	for (len=0; buffer[len]; len++);
+	char *s = (char *)malloc(sizeof(char) * len + 1);
+	if (!s) return (NULL);
+	for (int i=0; buffer[i]; i++) s[i] = buffer[i];
+	s[len] = 0;
+	return (s);
 }
 
 int parse_integer(json *dst, FILE *stream)
@@ -150,14 +151,18 @@ int parse_string(json *dst, pair *pair, FILE *stream)
 		buffer[i++] = c;
 	}
 	buffer[i] = 0;
-	if (!expect(stream, '"'))
-		return (FAILURE);
+	if (!expect(stream, '"')) return (FAILURE);
 	if (dst)
 	{
 		dst->type = STRING;
 		dst->string = ft_strdup(buffer);
+		if (!dst->string) return (FAILURE);
 	}
-	else pair->key = ft_strdup(buffer);
+	else 
+	{
+		pair->key = ft_strdup(buffer);
+		if (!pair->key) return (FAILURE);
+	}
 	return (SUCCESS);
 }
 
@@ -165,11 +170,13 @@ int parse_map(json *dst, FILE *stream)
 {
 	int pair_num = 0;
 	pair *pairs = NULL;
+
 	if (!expect(stream, '{')) return (FAILURE);
 	while (peek(stream) != '}' && peek(stream) != EOF)
 	{
 		pair_num++;
 		pairs = (pair *)realloc(pairs, sizeof(pair) * pair_num);
+		if (!pairs) return (FAILURE);
 		if (parse_string(NULL, &pairs[pair_num - 1], stream) == -1) return (FAILURE);
 		if (!expect(stream, ':')) return (FAILURE);
 		if (argo(&(pairs[pair_num - 1]).value, stream) == -1) return (FAILURE);
@@ -182,7 +189,7 @@ int parse_map(json *dst, FILE *stream)
 	return (SUCCESS);
 }
 
-int argo(json *dst, FILE *stream)
+int	argo(json *dst, FILE *stream)
 {
 	int c = peek(stream);
 	if (c == '"') return (parse_string(dst, NULL, stream));

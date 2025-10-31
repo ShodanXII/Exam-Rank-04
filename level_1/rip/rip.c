@@ -1,50 +1,49 @@
+
 #include <stdio.h>
 
-int must_fix;
+int must_fix = 0;
+char *input;
 
-int invalid(const char *s)
+int is_valid()
 {
-    int unclosed = 0, unopened = 0;
-    for (int i = 0; s[i]; i++)
-    {
-        if (s[i] == '(') unclosed++;
-        else if (s[i] == ')')
-        {
-            if (unclosed > 0) unclosed--;
-            else unopened++;
-        }
-    }
-    return unclosed + unopened;
+	int unopened = 0, unclosed = 0;
+	for (int i=0; input[i]; i++)
+	{
+		if (input[i] == '(') unclosed++;
+		else if (input[i] == ')')
+		{
+			if (unclosed > 0) unclosed--;
+			else unopened++;
+		}
+	}
+	return (unclosed + unopened);
 }
 
-void rip(char *s, int make_change, int pos)
+void rip(int changes_nbr, int started_pos)
 {
-    if (make_change > must_fix)
-        return ;
-    if (make_change == must_fix && !invalid(s))
-    {
-        puts(s);
-        return ;
-    }
-    for (int i = pos; s[i]; i++)
-    {
-        if (i > pos && s[i] == s[i - 1])
-            continue ;
-        if (s[i] == '(' || s[i] == ')')
-        {
-            char c = s[i];
-            s[i] = ' ';
-            rip(s, make_change + 1, i + 1);
-            s[i] = c;
-        }
-    }
+	if (changes_nbr > must_fix) return ;
+	if (changes_nbr == must_fix && is_valid() == 0)
+	{
+		puts(input);
+		return ;
+	}
+	int c;
+	for (int i=started_pos; input[i]; i++)
+	{
+		if (input[i] == '(' || input[i] == ')')
+		{
+			c = input[i];
+			input[i] = ' ';
+			rip(changes_nbr + 1, i + 1);
+			input[i] = c;
+		}
+	}
 }
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
-        return 1;
-    must_fix = invalid(argv[1]);
-    rip(argv[1], 0, 0);
-    return 0;
+	if (argc != 2) return (1);
+	input = argv[1];
+	must_fix = is_valid();
+	rip(0, 0);
 }
