@@ -4,7 +4,7 @@
 int must_fix = 0;
 char *input;
 
-int is_valid()
+int count_unmatched_parens()
 {
 	int unopened = 0, unclosed = 0;
 	for (int i=0; input[i]; i++)
@@ -22,7 +22,7 @@ int is_valid()
 void rip(int changes_nbr, int started_pos)
 {
 	if (changes_nbr > must_fix) return ;
-	if (changes_nbr == must_fix && is_valid() == 0)
+	if (changes_nbr == must_fix && count_unmatched_parens() == 0)
 	{
 		puts(input);
 		return ;
@@ -44,6 +44,6 @@ int main(int argc, char **argv)
 {
 	if (argc != 2) return (1);
 	input = argv[1];
-	must_fix = is_valid();
+	must_fix = count_unmatched_parens();
 	rip(0, 0);
 }
