@@ -4,8 +4,8 @@
 #include <string.h>
 #include <stdlib.h> // change this to <stdlib.h>
 
-#define SUCC 1
-#define FAIL -1
+#define SUCCESS 1
+#define FAILURE -1
 
 typedef struct	json {
 	enum {
@@ -131,45 +131,45 @@ char *ft_strdup(char *s)
 int parse_integer(json *dst, FILE *stream)
 {
 	if (!fscanf(stream, "%d", &dst->integer))
-		return (unexpected(stream), FAIL);
+		return (unexpected(stream), FAILURE);
 	dst->type = INTEGER;
-	return (SUCC);
+	return (SUCCESS);
 }
 
 int parse_string(json *dst, pair *pair, FILE *stream)
 {
 	int c;
-	char buffer[4000];
+	char buffer[7000];
 	int i = 0;
 
-	if (!expect(stream, '"')) return (FAIL);
+	if (!expect(stream, '"')) return (FAILURE);
 	while (peek(stream) != '"' && peek(stream) != EOF)
 	{
 		c = getc(stream);
 		if (c == '\\') c = getc(stream);
-		if (c == EOF) return (unexpected(stream), FAIL);
+		if (c == EOF) return (unexpected(stream), FAILURE);
 		buffer[i++] = c;
 	}
 	buffer[i] = 0;
-	if (!expect(stream, '"')) return (FAIL);
+	if (!expect(stream, '"')) return (FAILURE);
 	if (dst)
 	{
 		dst->type = STRING;
 		dst->string = ft_strdup(buffer);
-		if (!dst->string) return (FAIL);
+		if (!dst->string) return (FAILURE);
 	}
 	else
 	{
 		pair->key = ft_strdup(buffer);
-		if (!pair->key) return (FAIL);
+		if (!pair->key) return (FAILURE);
 	}
-	return (SUCC);
+	return (SUCCESS);
 }
 
 int free_pairs(pair *pairs, int count)
 {
 	if (!pairs)
-		return (FAIL);
+		return (FAILURE);
 	for (int i = 0; i < count; i++)
 	{
 		if (pairs[i].key)
@@ -177,7 +177,7 @@ int free_pairs(pair *pairs, int count)
 		free_json(pairs[i].value);
 	}
 	free(pairs);
-	return (FAIL);
+	return (FAILURE);
 }
 
 void init_pair(pair *pair)
@@ -199,13 +199,13 @@ int parse_map(json *dst, FILE *stream)
 		pair_num++;
 		pairs = (pair *)realloc(pairs, sizeof(pair) * pair_num);
 		if (!pairs)
-			return (FAIL);
+			return (FAILURE);
 		init_pair(&pairs[pair_num - 1]);
-		if (parse_string(NULL, &pairs[pair_num - 1], stream) == FAIL)
+		if (parse_string(NULL, &pairs[pair_num - 1], stream) == FAILURE)
 			return (free_pairs(pairs, pair_num));
 		if (!expect(stream, ':'))
 			return (free_pairs(pairs, pair_num));
-		if (argo(&(pairs[pair_num - 1]).value, stream) == FAIL)
+		if (argo(&(pairs[pair_num - 1]).value, stream) == FAILURE)
 			return (free_pairs(pairs, pair_num));
 		if (peek(stream) != '}' && !expect(stream, ','))
 			return (free_pairs(pairs, pair_num));
@@ -215,7 +215,7 @@ int parse_map(json *dst, FILE *stream)
 	dst->type = MAP;
 	dst->map.data = pairs;
 	dst->map.size = pair_num;
-	return (SUCC);
+	return (SUCCESS);
 }
 
 int	argo(json *dst, FILE *stream)
@@ -228,7 +228,7 @@ int	argo(json *dst, FILE *stream)
 		return (parse_map(dst, stream));
 	if (isdigit(c) || c == '+' || c == '-')
 		return (parse_integer(dst, stream));
-	return (unexpected(stream), FAIL);
+	return (unexpected(stream), FAILURE);
 }
 
 int	main(int argc, char **argv)
