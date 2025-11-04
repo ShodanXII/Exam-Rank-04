@@ -3,62 +3,86 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+// prototype
 int sandbox(void (*f)(void), unsigned int timeout, bool verbose);
 
-void nice_function(void)
+// ANSI colors
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define CYAN    "\033[36m"
+#define BOLD    "\033[1m"
+
+// utilities
+static void print_header(const char *title)
 {
-	// This function does nothing and exits normally (exit code 0)
-	return;
+	printf("\n%s━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", CYAN);
+	printf("%s▶ TEST:%s %s%s\n", CYAN, RESET, BOLD, title);
+	printf("%s━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n", CYAN, RESET);
 }
 
-void bad_function_exit_code(void)
+static void print_result(const char *desc, int result, int expected)
 {
-	// This function exits with code 1 (failure)
-	exit(1);
+	const char *status = (result == expected) ? GREEN "✓ PASS" RESET : RED "✗ FAIL" RESET;
+	printf("%-60s [%s]\n", desc, status);
 }
+
+static void print_line(void)
+{
+	printf("%s---------------------------------------------------------------%s\n", CYAN, RESET);
+}
+
+// dummy functions
+void nice_function(void) { return; }
+
+void bad_function_exit_code(void) { exit(1); }
 
 void bad_function_segfault(void)
 {
-	// This function causes a segmentation fault
 	int *ptr = NULL;
-	*ptr = 42;  // This will cause a segfault
+	*ptr = 42;
 }
 
 void bad_function_timeout(void)
 {
-	// This function runs indefinitely
 	while (1) {}
 }
 
 void bad_function_sleep(void)
 {
-	// This function sleeps for more than the timeout and gets killed by alarm handler
-	sleep(5);  // Sleep for 5 seconds (assuming timeout is less than 5 seconds)
+	sleep(5);
 }
 
-int main()
+int main(void)
 {
-	int	result;
+	int result;
 
-	printf("Test 1: Normal function (Nice)\n");
+	print_header("Normal function (Nice)");
 	result = sandbox(nice_function, 5, true);
-	printf("Result: %d\n", result);  // Expected output: 1 ("Nice function!")
+	print_result("Expected: exit normally (code 0)", result, 1);
+	print_line();
 
-	printf("Test 2: Bad function (Exit code 1)\n");
+	print_header("Bad function (Exit code 1)");
 	result = sandbox(bad_function_exit_code, 5, true);
-	printf("Result: %d\n", result);  // Expected output: 0 ("Bad function: exited with code 1")
+	print_result("Expected: exit(1)", result, 0);
+	print_line();
 
-	printf("Test 3: Bad function (Segfault)\n");
+	print_header("Bad function (Segfault)");
 	result = sandbox(bad_function_segfault, 5, true);
-	printf("Result: %d\n", result);  // Expected output: 0 ("Bad function: Segmentation fault")
+	print_result("Expected: segmentation fault detected", result, 0);
+	print_line();
 
-	printf("Test 4: Bad function (Timeout)\n");
-	result = sandbox(bad_function_timeout, 2, true);  // Timeout after 2 seconds
-	printf("Result: %d\n", result);  // Expected output: 0 ("Bad function: timed out after 2 seconds")
+	print_header("Bad function (Timeout)");
+	result = sandbox(bad_function_timeout, 2, true);
+	print_result("Expected: timeout after 2 seconds", result, 0);
+	print_line();
 
-	printf("Test 5: Bad function (Killed by SIGKILL)\n");
-	result = sandbox(bad_function_sleep, 2, true);  // Timeout after 2 seconds
-	printf("Result: %d\n", result);  // Expected output: 0 ("Bad function: timed out after 2 seconds")
+	print_header("Bad function (Sleep longer than timeout)");
+	result = sandbox(bad_function_sleep, 2, true);
+	print_result("Expected: killed after timeout", result, 0);
+	print_line();
 
+	printf("\n%sAll tests complete.%s\n", BOLD, RESET);
 	return 0;
 }
