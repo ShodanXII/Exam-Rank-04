@@ -2,64 +2,59 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int n;
+int g_len;
+int *g_board;
 
-void    init_board(int board[n][n])
+void print_solution()
 {
-    for (int i=0; i<n; i++)
-        for (int j=0; j<n; j++)
-            board[i][j] = 0;
+    int i;
+    for (i=0; i<g_len-1; i++)
+        fprintf(stdout, "%d ", g_board[i]);
+    fprintf(stdout, "%d\n", g_board[i]);
 }
 
-void    print_solution(int solution[])
+int is_valid(int raw, int col)
 {
-    for (int i=0; i<n; i++)
-        fprintf(stdout, "%d ", solution[i]);
-    fprintf(stdout, "\n");
-}
-
-int is_valid(int row, int col, int board[n][n])
-{
-    int i, j;
-    for (i=row-1; i>=0; i--)
-        if (board[i][col] == 1)
-            return (0);
-    for (i=row-1, j=col-1; i>=0 && j>=0; i--, j--)
-        if (board[i][j] == 1)
-            return (0);
-    for (i=row-1, j=col+1; i>=0 && j<n; i--, j++)
-        if (board[i][j] == 1)
-            return (0);
-    return (1);
-}
-
-void    n_queens(int row, int board[n][n], int solution[])
-{
-    if (row == n)
+    int q_col, q_raw;
+    for (int i=0; i<raw; i++)
     {
-        print_solution(solution);
+        q_raw = i, q_col = g_board[i];
+        if (q_col == col)
+            return (-1);
+        else if (q_raw - q_col == raw - col)
+            return (-1);
+        else if (q_raw + q_col == raw + col)
+            return (-1);
+    }
+    return (0);
+}
+
+void    n_queens(int raw)
+{
+    if (raw == g_len)
+    {
+        print_solution();
         return ;
     }
-    for (int col=0; col<n; col++)
+    for (int col=0; col<g_len; col++)
     {
-        if (is_valid(row, col, board))
+        if (is_valid(raw, col) == 0)
         {
-            board[row][col] = 1;
-            solution[row] = col;
-            n_queens(row+1, board, solution);
-            board[row][col] = 0;
+            g_board[raw] = col;
+            n_queens(raw+1);
         }
     }
 }
 
 int main(int argc, char **argv)
 {
-    if (argc != 2 || atoi(argv[1]) <= 0)
+    if (argc != 2)
         return (1);
-    n = atoi(argv[1]);
-    int board[n][n];
-    int solution[n];
-    init_board(board);
-    n_queens(0, board, solution);
-    return (0);
+    g_len = atoi(argv[1]);
+	if (g_len == 0)
+		return (fprintf(stdout, "\n"), 1);
+    int board[g_len];
+    g_board = board;
+    n_queens(0);
+    return 0;
 }

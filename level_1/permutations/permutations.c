@@ -1,62 +1,57 @@
 #include <stdio.h>
 
-int n;
-char *arg;
+char *g_input;
+int g_len;
 
-void    sort_arr(void)
+void sort()
 {
-    char tmp;
-    for (int i=0; arg[i]; i++)
-    {
-        for (int j=i+1; arg[j]; j++)
-        {
-            if (arg[i] > arg[j])
-            {
-                tmp = arg[i];
-                arg[i] = arg[j];
-                arg[j] = tmp;
-            }
-        }
-    }
+	int c;
+
+	for (int i=0; g_input[i]; i++)
+	{
+		for (int j=i+1; g_input[j]; j++)
+		{
+			if (g_input[i] > g_input[j])
+			{
+				c = g_input[i];
+				g_input[i] = g_input[j];
+				g_input[j] = c;
+			}
+		}
+	}
 }
 
-int ft_strlen()
+void permute(char *result, int used[], int idx)
 {
-    int i=0;
-    while (arg[i])
-        i++;
-    return (i);
+	if (g_len == idx)
+	{
+		puts(result);
+		return ;
+	}
+	for (int i=0; i<g_len; i++)
+	{
+		if (used[i]) continue ;
+		result[idx] = g_input[i];
+		used[i] = 1;
+		permute(result, used, idx + 1);
+		used[i] = 0;
+	}
 }
 
-void permute(char *str, int idx, int used[])
+int main(int argc, char **argv)
 {
-    if (n == idx)
-    {
-        puts(str);
-        return ;
-    }
-    for (int i=0; i<n; i++)
-    {
-        if (used[i]) continue ;
-        str[idx] = arg[i];
-        used[i] = 1;
-        permute(str, idx + 1, used);
-        used[i] = 0;
-    }
-}
+	if (argc != 2)
+		return (1);
 
-int main(int argc, char *argv[])
-{
-    if (argc != 2)
-        return (1);
-    arg = argv[1];
-    n = ft_strlen();
-    int used[n];
-    for (int i=0; i < n; i++)
-        used[i] = 0;
-    char str[n + 1];
-    str[n] = '\0';
-    sort_arr();
-    permute(str, 0, used);
-    return (0);
+	g_input = argv[1];
+	sort();
+	for (g_len=0; g_input[g_len]; g_len++);
+	char result[g_len + 1];
+	result[g_len] = '\0';
+
+	int used[g_len];
+	for (int i=0; i<g_len; i++) used[i] = 0;
+
+	permute(result, used, 0);
+	return (0);
 }
