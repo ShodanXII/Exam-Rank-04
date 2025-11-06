@@ -3,21 +3,21 @@
 
 int add();
 
-const char *input;
+char *g_input;
 int g_error = 0;
 
 void    unexpected(char c)
 {
+	g_error = 1;
     if (c)
         printf("Unexpected token '%c'\n", c);
     else
-        printf("Unexpected end of file\n");
-	g_error = 1;
+        printf("Unexpected end of input\n");
 }
 
-int peek() {return (*input); }
+int peek() {return (*g_input); }
 
-int consume() {return (*input++); }
+int consume() {return (*g_input++); }
 
 int factory()
 {
@@ -63,7 +63,7 @@ int add()
 int main(int argc, char **argv)
 {
 	if (argc != 2) return (1);
-	input = argv[1];
+	g_input = argv[1];
 	int res = add();
 	if (g_error) return (1);
 	if (peek() != '\0') return (unexpected(peek()), 1);
