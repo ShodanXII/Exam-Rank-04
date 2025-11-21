@@ -16,6 +16,16 @@ void alarm_handler(int sig)
 	(void)sig;
 }
 
+void setup_signal()
+{
+    struct sigaction sa;
+
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+	sa.sa_handler = alarm_handler;
+	sigaction(SIGALRM, &sa, NULL);
+}
+
 int sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 {
 	pid_t pid;
@@ -28,11 +38,7 @@ int sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 		f();
 		exit(0);
 	}
-    struct sigaction sa;
-    sa.sa_flags = 0;
-    sigemptyset(&sa.sa_mask);
-	sa.sa_handler = alarm_handler;
-	sigaction(SIGALRM, &sa, NULL);
+    setup_signal();
 	alarm(timeout);
 	if (waitpid(pid, &status, 0) == -1)
 	{
